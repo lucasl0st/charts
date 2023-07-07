@@ -1,0 +1,6 @@
+dependencies:
+- name: infinitedb
+  repository: file://../infinitedb
+  version: 0.1.0
+digest: sha256:9b25ed8f53013b46ca211b49660586020c6177e3777f0281727f7e8c2cf89110
+generated: "2023-07-08T00:20:21.487297+02:00"

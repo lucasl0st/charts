@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datasources
+data:
+  sources.json: |-
+{{ .Files.Get "sources.json" | indent 4 }}
+{{/* .Get, not .Glob; indent 4 spaces, more than 2 above */}}

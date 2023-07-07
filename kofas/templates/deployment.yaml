@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "infinitedb.fullname" . }}
+  name: {{ include "kofas.fullname" . }}
   labels:
-    {{- include "infinitedb.labels" . | nindent 4 }}
+    {{- include "kofas.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "infinitedb.selectorLabels" . | nindent 6 }}
+      {{- include "kofas.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -16,13 +16,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "infinitedb.selectorLabels" . | nindent 8 }}
+        {{- include "kofas.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "infinitedb.serviceAccountName" . }}
+      serviceAccountName: {{ include "kofas.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -36,52 +36,47 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
-            {{- if .Values.config.databasePath }}
-            - name: DATABASE_PATH
-              value: {{ .Values.config.databasePath | quote }}
-            {{- end }}
-            {{- if .Values.config.authentication }}
-            - name: AUTHENTICATION
-              value: {{ .Values.config.authentication | quote }}
-            {{- end }}
-            {{- if .Values.config.port }}
-            - name: PORT
-              value: {{ .Values.config.port | quote }}
-            {{- end }}
-            {{- if .Values.config.requestLogging }}
-            - name: REQUEST_LOGGING
-              value: {{ .Values.config.requestLogging | quote }}
-            {{- end }}
-            {{- if .Values.config.cacheSize }}
-            - name: CACHE_SIZE
-              value: {{ .Values.config.cacheSize | quote }}
-            {{- end }}
+            - name: SOURCES_PATH
+              value: /etc/kofas/sources.json
+            - name: DATABASE_HOSTNAME
+              value: "{{ .Release.Name }}-infinitedb.{{ .Release.Namespace }}.svc.cluster.local"
+            - name: GTFS_DATA_DIR
+              value: /var/lib/kofas
           volumeMounts:
+            - name: datasources-volume
+              mountPath: /etc/kofas
             {{- if .Values.persistence.enabled }}
             - name: data
               mountPath: {{ .Values.persistence.mountPath }}
               {{- if .Values.persistence.subPath }}
               subPath: {{ .Values.persistence.subPath }}
               {{- end }}
-            {{- end }}
+             {{- end }}
           livenessProbe:
             httpGet:
               path: /health
               port: http
+            initialDelaySeconds: 60
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /health
               port: http
+            initialDelaySeconds: 60
+            failureThreshold: 60
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
+        - name: datasources-volume
+          configMap:
+            name: datasources
         {{- if and .Values.persistence.enabled .Values.persistence.existingClaim }}
-            - name: data
-              persistentVolumeClaim:
-                claimName: {{ tpl .Values.persistence.existingClaim $ }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ tpl .Values.persistence.existingClaim $ }}
         {{- else }}
-          - name: data
-            emptyDir: { }
+        - name: data
+          emptyDir: { }
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

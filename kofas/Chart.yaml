@@ -1,0 +1,11 @@
+apiVersion: v2
+name: kofas
+description: Helm Chart for KoFas
+type: application
+version: 0.1.0
+appVersion: "latest"
+
+dependencies:
+  - name: infinitedb
+    repository: file://../infinitedb
+    version: 0.1.0
