@@ -1,0 +1,6 @@
+apiVersion: v2
+name: infinitedb
+description: Helm Chart for InfiniteDB
+type: application
+version: 0.1.0
+appVersion: "v0.0.1-67-g30740bb"
