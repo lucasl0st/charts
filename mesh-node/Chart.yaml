@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mesh-node
+description: A Helm chart for mesh-node
+type: application
+version: 0.1.0
+appVersion: "latest"
